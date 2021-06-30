@@ -1,6 +1,5 @@
-from MLP_GANs import *
+from models.MLP_GANs import *
 from Training import *
-import argparse
 from Testing import *
 import sys
 
@@ -22,32 +21,33 @@ def run(path, args):
     # Load data into dataloader
     if data_type == 'sin':
         dataloader = load_sin_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
-    elif data_type == 'arma':
+    elif data_type == 'arma_11_fixed':
         dataloader = load_arima_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
     else:
         sys.exit('invalid data type: choose sin or arma')
 
     # Create generator, discriminator and their optimizers
     gen = MLPGenerator(z_dim=noise_dim, len_sample=len_samples, hid_dim=128)
-    gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(beta_1, beta_2))
     disc = MLPDiscriminator(len_sample=len_samples)
+
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(beta_1, beta_2))
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(beta_1, beta_2))
 
     # Store variables for diagnostics
     generator_losses = []
     critic_losses = []
 
-    for _ in range(n_epochs):
-        print("--------------- starting epoch --------------- ")
+    for i in range(n_epochs):
+        print("--------------- starting epoch {} --------------- \n".format(str(i)))
         trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
                   c_lambda, crit_repeats, critic_losses, generator_losses, device='cpu')
-        print("--------------- finished epoch --------------- ")
+        print("--------------- finished epoch {} --------------- \n".format(str(i)))
 
     # Save model
 
     generator_path = os.path.join(path, data_type + 'generator.pth')
     disc_path = os.path.join(path, data_type + 'discriminator.pth')
-    print("--------------- models saved --------------- ")
+    print("--------------- models saved --------------- \n")
 
     torch.save(gen, generator_path)
     torch.save(disc, disc_path)
@@ -85,10 +85,14 @@ if __name__ == '__main__':
                         type=int, default=100)
     parser.add_argument('-dt', '--data_type', help='ARMA or sin',
                         type=str, default="sin")
+    parser.add_argument('-r', '--run', help='Run',
+                        type=str2bool, default=True)
     # parse arguments
     args = parser.parse_args()
+    print(args)
 
-    runbool = True
+    runbool = args.run
+    print(runbool)
     testbool = True
 
     # make models directory
@@ -117,9 +121,10 @@ if __name__ == '__main__':
     if testbool:
         gen = torch.load(os.path.join(models_path, args.data_type + 'generator.pth'))
         disc = torch.load(os.path.join(models_path, args.data_type + 'discriminator.pth'))
-        plot_timeseries(disc, gen, args, device='cpu')
-        parameter_distribution(disc, gen, args, device='cpu',
-                               save_name=args.data_type + '_parameter_distribution', path=figures_path)
+        plot_timeseries(disc, gen, args, save_name=args.data_type + '_timeseries_example',
+                        path=figures_path, device='cpu')
+        #parameter_distribution(disc, gen, args, device='cpu',
+        #                       save_name=args.data_type + '_parameter_distribution', path=figures_path)
 
     ################################################################################
     ################################################################################

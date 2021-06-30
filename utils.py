@@ -1,5 +1,6 @@
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
+import argparse
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -29,5 +30,17 @@ def make_timeseries_plots(time_series_tensor, num_plots: int = 10):
         axs[i].plot(time_series_tensor.detach().view(len(time_series_tensor), -1)[i], color=colors[i % len(colors)])
         axs[i].grid()
     plt.show()
+    return fig
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 ################################################################################
 ################################################################################
+

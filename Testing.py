@@ -4,11 +4,11 @@ import seaborn as sns
 import os
 
 
-def plot_timeseries(disc, gen, args, device='cpu'):
+def plot_timeseries(disc, gen, args, save_name, path, device='cpu'):
     fake_noise = get_noise(args.batch_size, args.noise_dim, device=device)
     fake = gen(fake_noise)
-    make_timeseries_plots(fake)
-
+    fig = make_timeseries_plots(fake)
+    fig.savefig(os.path.join(path, save_name))
 
 def parameter_distribution(disc, gen, args, save_name, path, device='cpu'):
 
