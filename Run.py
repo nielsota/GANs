@@ -1,4 +1,5 @@
 from models.MLP_GANs import *
+from models.CausalConvGan import *
 from Training import *
 from Testing import *
 import sys
@@ -17,18 +18,29 @@ def run(path, args):
     num_samples = args.num_samples
     len_samples = args.len_samples
     data_type = args.data_type
+    model_type = args.model_type
 
     # Load data into dataloader
     if data_type == 'sin':
+        print('Using sin data')
         dataloader = load_sin_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
     elif data_type == 'arma_11_fixed':
+        print('Using arma data')
         dataloader = load_arima_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
     else:
         sys.exit('invalid data type: choose sin or arma')
 
     # Create generator, discriminator and their optimizers
-    gen = MLPGenerator(z_dim=noise_dim, len_sample=len_samples, hid_dim=128)
-    disc = MLPDiscriminator(len_sample=len_samples)
+    if model_type == 'MLP':
+        print('Using MLP models')
+        gen = MLPGenerator(z_dim=noise_dim, len_sample=len_samples, hid_dim=128)
+        disc = MLPDiscriminator(len_sample=len_samples)
+    elif model_type == 'CausalConv':
+        print('Using Causal Convolution models')
+        gen = ConvGenerator(in_channels=1, z_dim=noise_dim, len_sample=100)
+        disc = ConvDiscriminator(in_channels=1)
+    else:
+        sys.exit('invalid model type: choose MLP or CausalConv')
 
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(beta_1, beta_2))
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(beta_1, beta_2))
@@ -38,19 +50,20 @@ def run(path, args):
     critic_losses = []
 
     for i in range(n_epochs):
-        print("--------------- starting epoch {} --------------- \n".format(str(i)))
+        print("--------------- starting epoch {} --------------- \n".format(str(i+1)))
         trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
                   c_lambda, crit_repeats, critic_losses, generator_losses, device='cpu')
-        print("--------------- finished epoch {} --------------- \n".format(str(i)))
+        print("--------------- finished epoch {} --------------- \n".format(str(i+1)))
 
     # Save model
 
-    generator_path = os.path.join(path, data_type + 'generator.pth')
-    disc_path = os.path.join(path, data_type + 'discriminator.pth')
+    generator_path = os.path.join(path, model_type + '_' + data_type + '_generator.pth')
+    disc_path = os.path.join(path, model_type + '_' + data_type + '_discriminator.pth')
     print("--------------- models saved --------------- \n")
 
     torch.save(gen, generator_path)
     torch.save(disc, disc_path)
+
 
 ################################################################################
 ############################## MAIN FUNCTION  ##################################
@@ -64,7 +77,7 @@ if __name__ == '__main__':
     # Instantiate arguments to be passed to parser
     # '--' makes argument not matter
     parser.add_argument('-e', '--n_epochs', help='Training epochs',
-                        type=int, default=25)
+                        type=int, default=50)
     parser.add_argument('-nd', '--noise_dim', help='Noise dimension',
                         type=int, default=100)
     parser.add_argument('-bs', '--batch_size', help='Batch size',
@@ -80,51 +93,46 @@ if __name__ == '__main__':
     parser.add_argument('-cr', '--crit_repeats', help='Crit repeats',
                         type=int, default=5)
     parser.add_argument('-ns', '--num_samples', help='num_samples',
-                        type=int, default=10000)
+                        type=int, default=25000)
     parser.add_argument('-ls', '--len_samples', help='length samples',
                         type=int, default=100)
     parser.add_argument('-dt', '--data_type', help='ARMA or sin',
                         type=str, default="sin")
+    parser.add_argument('-mt', '--model_type', help='MLP or CC',
+                        type=str, default="MLP")
     parser.add_argument('-r', '--run', help='Run',
+                        type=str2bool, default=True)
+    parser.add_argument('-t', '--test', help='Test',
                         type=str2bool, default=True)
     # parse arguments
     args = parser.parse_args()
     print(args)
 
-    runbool = args.run
-    print(runbool)
-    testbool = True
-
     # make models directory
-    parent_dir = os.getcwd()
-    directory = 'models'
-    models_path = os.path.join(str(parent_dir), directory)
-    if not os.path.exists(models_path):
-        os.mkdir(models_path)
-        print("Directory '% s' created" % directory)
-    else:
-        pass
+    makedirectory('fitted_models')
+
+    # make figures directory
+    makedirectory('figures')
+
+    # specify save paths
+    models_path = os.path.join(str(os.getcwd()), 'fitted_models')
+    figures_path = os.path.join(str(os.getcwd()), 'figures')
+
+    runbool = args.run
+    testbool = args.test
 
     if runbool:
         run(models_path, args)
 
-    # make figures directory
-    parent_dir = os.getcwd()
-    directory = 'figures'
-    figures_path = os.path.join(str(parent_dir), directory)
-    if not os.path.exists(figures_path):
-        os.mkdir(figures_path)
-        print("Directory '% s' created" % directory)
-    else:
-        pass
-
     if testbool:
-        gen = torch.load(os.path.join(models_path, args.data_type + 'generator.pth'))
-        disc = torch.load(os.path.join(models_path, args.data_type + 'discriminator.pth'))
-        plot_timeseries(disc, gen, args, save_name=args.data_type + '_timeseries_example',
+        # save name example models/sin_generator
+        gen = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type + '_generator.pth'))
+        disc = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type +  '_discriminator.pth'))
+        plot_timeseries(disc, gen, args, save_name=args.model_type + '_' + args.data_type +  '_timeseries_example',
                         path=figures_path, device='cpu')
-        #parameter_distribution(disc, gen, args, device='cpu',
-        #                       save_name=args.data_type + '_parameter_distribution', path=figures_path)
+        if args.data_type == 'arma_11_fixed':
+            parameter_distribution(disc, gen, args, device='cpu',
+                                   save_name= args.model_type + '_' + args.data_type + '_parameter_distribution', path=figures_path)
 
     ################################################################################
     ################################################################################

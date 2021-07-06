@@ -1,6 +1,7 @@
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 import argparse
+import os
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -32,6 +33,7 @@ def make_timeseries_plots(time_series_tensor, num_plots: int = 10):
     plt.show()
     return fig
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -41,6 +43,17 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def makedirectory(dir_name):
+    parent_dir = os.getcwd()
+    directory = dir_name
+    models_path = os.path.join(str(parent_dir), directory)
+    if not os.path.exists(models_path):
+        os.mkdir(models_path)
+        print("Directory '% s' created" % directory)
+    else:
+        pass
 ################################################################################
 ################################################################################
 

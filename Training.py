@@ -5,7 +5,6 @@ from tqdm.auto import tqdm
 
 def trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
               c_lambda, crit_repeats, disc_losses, generator_losses, device='cpu'):
-
     for real, _ in tqdm(dataloader):
         cur_batch_size = len(real)
         real = real.to(device).float()
@@ -13,7 +12,6 @@ def trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
         ### Update critic ###
         mean_iteration_critic_loss = 0
         for _ in range(crit_repeats):
-
             # Zero out gradients
             disc_opt.zero_grad()
 
@@ -24,7 +22,8 @@ def trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
             disc_real_pred = disc(real)
 
             # Compute loss with gradient penalty
-            epsilon = torch.rand(len(real), 1, 1, 1, device=device, requires_grad=True)
+            # epsilon should have shape [B,1], then broadcasted to every time series
+            epsilon = torch.rand(len(real), 1, device=device, requires_grad=True)
             gradient = compute_gradient(disc, real, fake.detach(), epsilon)
             gp = gradient_penalty(gradient)
             disc_loss = critic_loss(disc_fake_pred, disc_real_pred, gp, c_lambda)
