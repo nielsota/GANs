@@ -2,19 +2,46 @@ from Data import *
 from utils import *
 import seaborn as sns
 import os
+import pandas as pd
 
 
-def plot_timeseries(disc, gen, args, save_name, path, device='cpu'):
+def plot_timeseries(disc, gen, args, save_name, path,
+                    conditional=False, device='cpu'):
     fake_noise = get_noise(args.batch_size, args.noise_dim, device=device)
+
+    if conditional:
+        params = np.arange(-0.95, 0.95, 0.1)
+        labels = []
+        for i in range(args.batch_size):
+            # Draw parameters
+            ar = np.random.choice(params)
+            ma = np.random.choice(params)
+            labels.append([ar, ma])
+        labels = torch.tensor(labels)
+        fake_noise = combine_noise_and_labels(fake_noise, labels)
+
     fake = gen(fake_noise)
     fig = make_timeseries_plots(fake)
     fig.savefig(os.path.join(path, save_name))
 
-def parameter_distribution(disc, gen, args, save_name, path, device='cpu'):
 
-    TESTING_SERIES = 1000
+def parameter_distribution(disc, gen, args, model_type, data_type,
+                           conditional=False, device='cpu'):
+    save_name = model_type + '_' + data_type + '_parameter_distribution'
+    print("Started generating parameter distribution")
+
+    AR_TARGET = 0.65
+    MA_TARGET = 0.25
+    TESTING_SERIES = 2500
 
     fake_noise = get_noise(TESTING_SERIES, args.noise_dim, device=device)
+
+    if conditional:
+        labels = torch.ones([TESTING_SERIES, 2])
+        labels[:, 0] = labels[:, 0] * AR_TARGET
+        labels[:, 1] = labels[:, 1] * MA_TARGET
+        fake_noise = combine_noise_and_labels(fake_noise, labels)
+
     fake = gen(fake_noise)
     fake = fake.cpu().detach().numpy()
     AR = []
@@ -25,6 +52,11 @@ def parameter_distribution(disc, gen, args, save_name, path, device='cpu'):
         AR.append(res[1])
         MA.append(res[2])
 
+    print(" Finished generating paramter distribution")
+    print('mean AR parameter estimates: {}'.format(np.mean(np.array(AR))))
+    print('mean MA parameter estimates: {}'.format(np.mean(np.array(MA))))
+    print('std AR parameter estimates: {}'.format(np.std(np.array(AR))))
+    print('std MA parameter estimates: {}'.format(np.std(np.array(MA))))
     sns.set(rc={'figure.figsize': (11.7, 8.27)})
     sns.axes_style("whitegrid")
 
@@ -37,13 +69,109 @@ def parameter_distribution(disc, gen, args, save_name, path, device='cpu'):
                  kde_kws={'linewidth': 1, 'shade': True},
                  label='MA')
 
-    plt.axvline(0.5, 0, 10, linestyle='-')
+    plt.axvline(AR_TARGET, 0, 10, linestyle='-')
+    plt.axvline(MA_TARGET, 0, 10, linestyle='-')
     # plt.axvline(np.mean(AR), 0, max(AR), linestyle = '-')
     # plt.axvline(np.mean(MA), 0, max(MA))
     # Plot formatting
     plt.legend(prop={'size': 10}, title='Parameter')
-    plt.title('Density Plot AR and MA paramters')
+    plt.title('Density Plot AR and MA parameters')
     plt.xlabel('Value')
     plt.ylabel('Density')
+    print(os.path.join(path, save_name))
     plt.savefig(os.path.join(path, save_name))
     plt.show()
+
+
+def parameter_heatmap(disc, gen, args, model_type, data_type, path,
+                     device='cpu'):
+    save_name_ma = model_type + '_' + data_type + '_parameter_heatmap_ma'
+    save_name_ar = model_type + '_' + data_type + '_parameter_heatmap_ar'
+
+    MA_range = np.arange(-0.95, 0.95, 0.1)
+    AR_range = np.arange(-0.95, 0.95, 0.1)
+    TESTING_SERIES = 1
+    map_ar = np.zeros([len(MA_range), len(AR_range)])
+    map_ma = np.zeros([len(MA_range), len(AR_range)])
+
+    # One column at a time
+    for i, ar in enumerate(AR_range):
+        for j, ma in enumerate(MA_range):
+
+            # Generate noise
+            fake_noise = get_noise(TESTING_SERIES, args.noise_dim, device=device)
+
+            # Generate labels
+            labels = torch.ones([TESTING_SERIES, 2])
+            labels[:, 0] = labels[:, 0] * ar
+            labels[:, 1] = labels[:, 1] * ma
+
+            # Append labels to noise
+            fake_noise = combine_noise_and_labels(fake_noise, labels)
+            fake = gen(fake_noise)
+            fake = fake.cpu().detach().numpy()
+
+            AR = []
+            MA = []
+            for k in range(len(fake)):
+                mod = ARIMA(fake[k, :], order=(1, 0, 1))
+                res = mod.fit(return_params=True)
+                AR.append(res[1])
+                MA.append(res[2])
+
+            # Compute mean estimate
+            mean_ar = np.mean(AR)
+            mean_ma = np.mean(MA)
+
+            # Compute and store bias, positive mean overestimated
+            map_ar[i, j] = (mean_ar - ar)
+            map_ma[i, j] = (mean_ma - ma)
+
+    # Convert to dataframe
+    map_ar_df = pd.DataFrame(map_ar, columns=np.round(AR_range, 2), index=np.round(MA_range, 2))
+    map_ma_df = pd.DataFrame(map_ma, columns=np.round(AR_range, 2), index=np.round(MA_range, 2))
+
+    colors = ["#de9e7c", "#91a6cc"]
+    customPalette = sns.color_palette(colors, as_cmap=True)
+    customPalette = sns.diverging_palette(230, 30, as_cmap=True)
+
+    # Plot heatmap MA
+    sns.heatmap(map_ma_df, cmap=customPalette)
+    plt.title('Heatmap MA parameter bias')
+    plt.xlabel('AR Parameter Value')
+    plt.ylabel('MA Parameter Value')
+    plt.savefig(os.path.join(path, save_name_ma))
+    plt.show()
+
+    # Plot heatmap AR
+    sns.heatmap(map_ar_df, cmap=customPalette)
+    plt.title('Heatmap AR parameter bias')
+    plt.xlabel('AR Parameter Value')
+    plt.ylabel('MA Parameter Value')
+    plt.savefig(os.path.join(path, save_name_ar))
+    plt.show()
+
+
+
+################################################################################
+############################## MAIN FUNCTION  ##################################
+################################################################################
+
+if __name__ == '__main__':
+    print("models loading...")
+    # save name example models/sin_generator
+    models_path = os.path.join(str(os.getcwd()), 'fitted_models')
+    figures_path = os.path.join(str(os.getcwd()), 'figures')
+    gen = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_variable' + '_generator.pth'))
+    disc = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_variable' + '_discriminator.pth'))
+
+    parser = argparse.ArgumentParser(description=" Load arguments for script ")
+    parser.add_argument('-nd', '--noise_dim', help='Noise dimension',
+                        type=int, default=100)
+    args = parser.parse_args()
+
+    parameter_heatmap(disc, gen, args,
+                      device='cpu',
+                      model_type='1_D_Conv',
+                      data_type='arma_11_variable',
+                      path=figures_path)

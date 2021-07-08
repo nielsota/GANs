@@ -244,30 +244,50 @@ class ConvGenerator(nn.Module):
                  len_sample: int = 100,
                  in_channels: int = 1):
         super().__init__()
-        self.gen = nn.Sequential(nn.Linear(z_dim, 100),
-                                 nn.LeakyReLU(0.2, inplace=True),
-                                 AddDimension(),
-                                 spectral_norm(nn.Conv1d(in_channels, 48, kernel_size, padding=padding),
+        self.num_filters = 72
+        self.len_sample = len_sample
+        self.emb_dim = 16
+        self.emb = nn.Sequential(nn.Linear(in_channels, self.emb_dim),
+                                 nn.LeakyReLU(0.2, inplace=True))
+
+        self.gen = nn.Sequential(#nn.Linear(z_dim, 100),
+                                 #nn.LeakyReLU(0.2, inplace=True),
+                                 #AddDimension(),
+                                 spectral_norm(nn.Conv1d(self.emb_dim, self.num_filters, kernel_size, padding=padding),
                                                n_power_iterations=10),
                                  nn.Upsample(200),
 
-                                 spectral_norm(nn.Conv1d(48, 48, kernel_size, padding=padding), n_power_iterations=10),
+                                 spectral_norm(nn.Conv1d(self.num_filters, 2*self.num_filters, kernel_size, padding=padding), n_power_iterations=10),
                                  nn.LeakyReLU(0.2, inplace=True),
                                  nn.Upsample(400),
 
-                                 spectral_norm(nn.Conv1d(48, 48, kernel_size, padding=padding), n_power_iterations=10),
+                                 spectral_norm(nn.Conv1d(2*self.num_filters, self.num_filters, kernel_size, padding=padding), n_power_iterations=10),
                                  nn.LeakyReLU(0.2, inplace=True),
                                  nn.Upsample(800),
 
-                                 spectral_norm(nn.Conv1d(48, 1, kernel_size, padding=padding), n_power_iterations=10),
+                                 spectral_norm(nn.Conv1d(self.num_filters, 1, kernel_size, padding=padding), n_power_iterations=10),
                                  nn.LeakyReLU(0.2, inplace=True),
 
                                  SqeezeDimension(),
                                  nn.Linear(800, len_sample)
                                  )
 
-    def forward(self, input):
-        return self.gen(input)
+    def forward(self, x):
+        batch_size = len(x)
+
+        # Switch T and C dimension, [B, T, C] -> [B*T, C]
+        x = x.transpose(1, 2).contiguous().view(-1, x.shape[1])
+
+        # Embedding: [B*T, C] -> [B*T, emb_dim]
+        x = self.emb(x)
+
+        # [B*T, emb_dim]-> [B, T, emb_dim]
+        x = x.view(batch_size, self.len_sample, self.emb_dim)
+
+        # [B, emb_dim, T]
+        x = x.transpose(1, 2).contiguous()
+
+        return self.gen(x)
 
 
 class ConvDiscriminator(nn.Module):
@@ -278,7 +298,7 @@ class ConvDiscriminator(nn.Module):
                  len_sample: int = 100,
                  in_channels: int = 1):
         super().__init__()
-        self.disc = nn.Sequential(AddDimension(),
+        self.disc = nn.Sequential(#AddDimension(),
                                   spectral_norm(nn.Conv1d(in_channels, 48, kernel_size, padding=padding),
                                                 n_power_iterations=10),
                                   nn.LeakyReLU(0.2, inplace=True),

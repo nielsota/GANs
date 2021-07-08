@@ -2,6 +2,8 @@ from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 import argparse
 import os
+import torch
+from Data import *
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -54,6 +56,47 @@ def makedirectory(dir_name):
         print("Directory '% s' created" % directory)
     else:
         pass
+
+
+def combine_vectors(z, y):
+    """
+
+    :param z: tensor
+    :param y: tensor
+    :return: tensors concatenated along 2nd dimension
+    """
+    return torch.cat((z.float(),y.float()), 1)
+
+
+def combine_noise_and_labels(data, labels):
+    """
+    Combine [32,100] and [32,C] into [32,C+1,100]
+    where each element [32,C] is repeated over entire channel
+    """
+    # shape -> [32, 6 , 1]
+    labels = labels[:, :, None]
+
+    # shape -> [32, 6 , 100]
+    repeated_labels = labels.repeat(1, 1, 100)
+
+    # Combine; data[:, None, :] has shape [32, 1, 100]
+    data_and_labels = combine_vectors(data[:, None, :], repeated_labels)
+
+    return data_and_labels
+
+
 ################################################################################
 ################################################################################
 
+
+if __name__ == '__main__':
+    print("Building test dataset...")
+    test_dataloader = load_arima_data(batch_size=128, dgp = 'arma_11_variable')
+    X, y = next(iter(test_dataloader))
+    combined = combine_noise_and_labels(X, y)
+    print("Output shape: {}".format(X.shape))
+    print("Labels shape: {}".format(y.shape))
+    print("Combined shape: {}".format(combined.shape))
+    print(combined[:, 0, :].shape)
+    print(y.shape[1])
+    make_timeseries_plots(combined[:, 0, :])

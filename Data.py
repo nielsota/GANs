@@ -99,7 +99,7 @@ class BasicARMA(Dataset):
         if self.transform:
             sample = self.transform(sample)
 
-        return sample, label
+        return sample, torch.zeros([0])
 
     def __make_data__(self):
 
@@ -194,29 +194,13 @@ class ARMA(Dataset):
 
         return np.array(data), np.array(labels)
 
-
-def load_arima_data(batch_size: int = 128, dgp="ARMA11", num_samples=250, len_sample=100, seed=1, transform=None):
-    """
-    Loads data into dataloader
-    Returns data in batches of shape (128, 1, 28, 28)
-    """
-
-    if dgp == "ARMA11":
-        print("Starting dataloading...")
-        data = BasicARMA(num_samples=num_samples, len_sample=len_sample, seed=seed, transform=transform)
-        dataloader = DataLoader(data, batch_size=batch_size)
-        print('Finished dataloading!\n')
-        return dataloader
-    else:
-        return "Wrong type!"
-
-
 ################################################################################
 ################################################################################
 
 ################################################################################
 ############################ Generate SIN ######################################
 ################################################################################
+
 
 class Sines(Dataset):
 
@@ -242,7 +226,7 @@ class Sines(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx):
-        return self.dataset[idx], 1
+        return self.dataset[idx], torch.zeros([0, 0])
 
     def _generate_sines(self):
         if self.seed is not None:
@@ -268,11 +252,47 @@ def load_sin_data(batch_size: int = 128, num_samples=250, len_sample=100, seed=1
 ################################################################################
 ################################################################################
 
+
+################################################################################
+############################# LOAD DATA ########################################
+################################################################################
+
+def load_arima_data(batch_size: int = 128,
+                    dgp="arma_11_fixed",
+                    num_samples=250,
+                    len_sample=100,
+                    seed=1,
+                    transform=None):
+    """
+    Loads data into dataloader
+    Returns data in batches of shape (128, 1, 28, 28)
+    """
+
+    if dgp == "arma_11_fixed":
+        print("Starting dataloading 123...")
+        data = BasicARMA(num_samples=num_samples, len_sample=len_sample, seed=seed, transform=transform)
+        dataloader = DataLoader(data, batch_size=batch_size)
+        print('Finished dataloading!\n')
+        return dataloader
+    elif dgp == "arma_11_variable":
+        print("Starting dataloading...")
+        data = ARMA(num_samples=num_samples, len_sample=len_sample, seed=seed, transform=transform)
+        dataloader = DataLoader(data, batch_size=batch_size)
+        print('Finished dataloading!\n')
+        return dataloader
+    else:
+        return "Wrong type!"
+
+    ################################################################################
+    ################################################################################
+
+
 if __name__ == '__main__':
     print("Building test dataset...")
-    test_dataloader = load_sin_data(batch_size=128)
-    sample = next(iter(test_dataloader))
-    print("Output shape: {}".format(sample.shape))
+    test_dataloader = load_arima_data(batch_size=128, dgp = 'arma_11_fixed')
+    X, y = next(iter(test_dataloader))
+    print("Output shape: {}".format(X.shape))
+    print("Labels shape: {}".format(y.shape))
     print("Dataloader functional!\n")
-    make_timeseries_plots(sample)
+    make_timeseries_plots(X)
 

@@ -6,7 +6,6 @@ import sys
 
 
 def run(path, args):
-
     n_epochs = args.n_epochs
     noise_dim = args.noise_dim
     batch_size = args.batch_size
@@ -19,14 +18,22 @@ def run(path, args):
     len_samples = args.len_samples
     data_type = args.data_type
     model_type = args.model_type
+    conditional = False
 
     # Load data into dataloader
     if data_type == 'sin':
         print('Using sin data')
-        dataloader = load_sin_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
+        dataloader = load_sin_data(batch_size=batch_size, num_samples=num_samples,
+                                   len_sample=len_samples)
     elif data_type == 'arma_11_fixed':
-        print('Using arma data')
-        dataloader = load_arima_data(batch_size=batch_size, num_samples=num_samples, len_sample=len_samples)
+        print('Using ARMA(1,1) data w/ fixed parameters')
+        dataloader = load_arima_data(batch_size=batch_size, num_samples=num_samples,
+                                     len_sample=len_samples, dgp=data_type)
+    elif data_type == 'arma_11_variable':
+        print('Using ARMA(1,1) data w/ variable parameters')
+        dataloader = load_arima_data(batch_size=batch_size, num_samples=num_samples,
+                                     len_sample=len_samples, dgp=data_type)
+        conditional = True
     else:
         sys.exit('invalid data type: choose sin or arma')
 
@@ -35,12 +42,14 @@ def run(path, args):
         print('Using MLP models')
         gen = MLPGenerator(z_dim=noise_dim, len_sample=len_samples, hid_dim=128)
         disc = MLPDiscriminator(len_sample=len_samples)
-    elif model_type == 'CausalConv':
-        print('Using Causal Convolution models')
-        gen = ConvGenerator(in_channels=1, z_dim=noise_dim, len_sample=100)
-        disc = ConvDiscriminator(in_channels=1)
+    elif model_type == '1_D_Conv':
+        _, y = next(iter(dataloader))
+        num_labels = y.shape[1]
+        print('Using 1-D Convolution models')
+        gen = ConvGenerator(in_channels=1 + num_labels, z_dim=noise_dim, len_sample=100)
+        disc = ConvDiscriminator(in_channels=1 + num_labels)
     else:
-        sys.exit('invalid model type: choose MLP or CausalConv')
+        sys.exit('invalid model type: choose MLP or 1_D_Conv')
 
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(beta_1, beta_2))
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(beta_1, beta_2))
@@ -50,13 +59,13 @@ def run(path, args):
     critic_losses = []
 
     for i in range(n_epochs):
-        print("--------------- starting epoch {} --------------- \n".format(str(i+1)))
+        print("--------------- starting epoch {} --------------- \n".format(str(i + 1)))
         trainloop(gen, disc, gen_opt, disc_opt, noise_dim, dataloader,
-                  c_lambda, crit_repeats, critic_losses, generator_losses, device='cpu')
-        print("--------------- finished epoch {} --------------- \n".format(str(i+1)))
+                  c_lambda, crit_repeats, critic_losses, generator_losses,
+                  conditional=conditional, device='cpu')
+        print("--------------- finished epoch {} --------------- \n".format(str(i + 1)))
 
     # Save model
-
     generator_path = os.path.join(path, model_type + '_' + data_type + '_generator.pth')
     disc_path = os.path.join(path, model_type + '_' + data_type + '_discriminator.pth')
     print("--------------- models saved --------------- \n")
@@ -77,7 +86,7 @@ if __name__ == '__main__':
     # Instantiate arguments to be passed to parser
     # '--' makes argument not matter
     parser.add_argument('-e', '--n_epochs', help='Training epochs',
-                        type=int, default=50)
+                        type=int, default=100)
     parser.add_argument('-nd', '--noise_dim', help='Noise dimension',
                         type=int, default=100)
     parser.add_argument('-bs', '--batch_size', help='Batch size',
@@ -98,7 +107,7 @@ if __name__ == '__main__':
                         type=int, default=100)
     parser.add_argument('-dt', '--data_type', help='ARMA or sin',
                         type=str, default="sin")
-    parser.add_argument('-mt', '--model_type', help='MLP or CC',
+    parser.add_argument('-mt', '--model_type', help='MLP or 1_D_Conv',
                         type=str, default="MLP")
     parser.add_argument('-r', '--run', help='Run',
                         type=str2bool, default=True)
@@ -106,7 +115,7 @@ if __name__ == '__main__':
                         type=str2bool, default=True)
     # parse arguments
     args = parser.parse_args()
-    print(args)
+    # print(args)
 
     # make models directory
     makedirectory('fitted_models')
@@ -125,14 +134,33 @@ if __name__ == '__main__':
         run(models_path, args)
 
     if testbool:
+        print("models loading...")
         # save name example models/sin_generator
         gen = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type + '_generator.pth'))
-        disc = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type +  '_discriminator.pth'))
-        plot_timeseries(disc, gen, args, save_name=args.model_type + '_' + args.data_type +  '_timeseries_example',
-                        path=figures_path, device='cpu')
+        disc = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type + '_discriminator.pth'))
+        print("generating samples...")
+        plot_timeseries(disc, gen, args, save_name=args.model_type + '_' + args.data_type + '_timeseries_example',
+                        path=figures_path, device='cpu', conditional=True)
+        print("finished plotting samples...")
         if args.data_type == 'arma_11_fixed':
-            parameter_distribution(disc, gen, args, device='cpu',
-                                   save_name= args.model_type + '_' + args.data_type + '_parameter_distribution', path=figures_path)
-
+            parameter_distribution(disc, gen, args,
+                                   device='cpu',
+                                   model_type=args.model_type,
+                                   data_type=args.data_type,
+                                   conditional=False,
+                                   path=figures_path)
+        if args.data_type == 'arma_11_variable':
+            #parameter_distribution(disc, gen, args,
+             ##                      device='cpu',
+              #                     model_type=args.model_type,
+              #                     data_type=args.data_type,
+              #                     conditional=True,
+              #                     path=figures_path)
+            parameter_heatmap(disc, gen, args,
+                              device='cpu',
+                              model_type=args.model_type,
+                              data_type=args.data_type,
+                              conditional=True,
+                              path=figures_path)
     ################################################################################
     ################################################################################
