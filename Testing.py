@@ -3,6 +3,11 @@ from utils import *
 import seaborn as sns
 import os
 import pandas as pd
+import warnings
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
+
+warnings.simplefilter('ignore', ConvergenceWarning)
+warnings.simplefilter('ignore', UserWarning)
 
 
 def plot_timeseries(disc, gen, args, save_name, path,
@@ -26,7 +31,7 @@ def plot_timeseries(disc, gen, args, save_name, path,
 
 
 def parameter_distribution(disc, gen, args, model_type, data_type,
-                           conditional=False, device='cpu'):
+                           path, conditional=False, device='cpu'):
     save_name = model_type + '_' + data_type + '_parameter_distribution'
     print("Started generating parameter distribution")
 
@@ -84,18 +89,25 @@ def parameter_distribution(disc, gen, args, model_type, data_type,
 
 
 def parameter_heatmap(disc, gen, args, model_type, data_type, path,
-                     device='cpu'):
+                      device='cpu'):
+    # Create savenames
     save_name_ma = model_type + '_' + data_type + '_parameter_heatmap_ma'
     save_name_ar = model_type + '_' + data_type + '_parameter_heatmap_ar'
+    save_name = model_type + '_' + data_type + '_parameter_heatmap'
 
+    # Create space of parameters to test
     MA_range = np.arange(-0.95, 0.95, 0.1)
     AR_range = np.arange(-0.95, 0.95, 0.1)
-    TESTING_SERIES = 1
+    TESTING_SERIES = 128
+
+    # Create matrices to save biases in
     map_ar = np.zeros([len(MA_range), len(AR_range)])
     map_ma = np.zeros([len(MA_range), len(AR_range)])
 
     # One column at a time
     for i, ar in enumerate(AR_range):
+
+        # One row at a time
         for j, ma in enumerate(MA_range):
 
             # Generate noise
@@ -111,6 +123,7 @@ def parameter_heatmap(disc, gen, args, model_type, data_type, path,
             fake = gen(fake_noise)
             fake = fake.cpu().detach().numpy()
 
+            # Do testing (n=TESTING_SERIES)
             AR = []
             MA = []
             for k in range(len(fake)):
@@ -131,8 +144,7 @@ def parameter_heatmap(disc, gen, args, model_type, data_type, path,
     map_ar_df = pd.DataFrame(map_ar, columns=np.round(AR_range, 2), index=np.round(MA_range, 2))
     map_ma_df = pd.DataFrame(map_ma, columns=np.round(AR_range, 2), index=np.round(MA_range, 2))
 
-    colors = ["#de9e7c", "#91a6cc"]
-    customPalette = sns.color_palette(colors, as_cmap=True)
+    # Create colorpalette
     customPalette = sns.diverging_palette(230, 30, as_cmap=True)
 
     # Plot heatmap MA
@@ -151,27 +163,91 @@ def parameter_heatmap(disc, gen, args, model_type, data_type, path,
     plt.savefig(os.path.join(path, save_name_ar))
     plt.show()
 
+    # Plot heatmap
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    sns.heatmap(map_ma_df, ax=axes[0], cmap=customPalette)
+    axes[0].set_title('MA Parameter Bias')
+    sns.heatmap(map_ar_df, ax=axes[1], cmap=customPalette)
+    axes[1].set_title('AR Parameter Bias')
+    plt.savefig(os.path.join(path, save_name))
+    plt.show()
+
+
+def residual_diagnostics(disc, gen, args, model_type, data_type, path,
+                         device='cpu'):
+    save_name = model_type + '_' + data_type + '_parameter_distribution'
+    print("Started generating parameter distribution")
+
+    AR_TARGET = 0.5
+    MA_TARGET = 0.5
+    TESTING_SERIES = 1000
+
+    fake_noise = get_noise(TESTING_SERIES, args.noise_dim, device=device)
+
+    labels = torch.ones([TESTING_SERIES, 2])
+    labels[:, 0] = labels[:, 0] * AR_TARGET
+    labels[:, 1] = labels[:, 1] * MA_TARGET
+    fake_noise = combine_noise_and_labels(fake_noise, labels)
+
+    fake = gen(fake_noise)
+    fake = fake.cpu().detach().numpy()
+    jb = []
+    lb_1 = []
+    lb_2 = []
+    het = []
+
+    for i in range(len(fake)):
+        mod = ARIMA(fake[i, :], order=(1, 0, 1))
+        res = mod.fit()
+
+        lb_temp = np.squeeze((res.test_serial_correlation('ljungbox')))
+        jb_temp = np.squeeze(res.test_normality('jarquebera'))
+        het_temp = res.test_heteroskedasticity('breakvar')
+
+        # Jarque-Bera P-value
+        jb.append(jb_temp[1])
+
+        # LB lag 1 p-value
+        lb_1.append(lb_temp[1, 0])
+
+        # LB lag 2 p-value
+        lb_2.append(lb_temp[1, 1])
+
+        # Heteroskedasticity test p-value
+        het.append(het_temp[0, 1])
+
+        # print(res.summary())
+        # print(jb)
+        # print(lb_1)
+        # print(het)
 
 
 ################################################################################
 ############################## MAIN FUNCTION  ##################################
 ################################################################################
 
+
 if __name__ == '__main__':
     print("models loading...")
     # save name example models/sin_generator
     models_path = os.path.join(str(os.getcwd()), 'fitted_models')
     figures_path = os.path.join(str(os.getcwd()), 'figures')
-    gen = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_variable' + '_generator.pth'))
-    disc = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_variable' + '_discriminator.pth'))
+    gen = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_fixed' + '_generator.pth'))
+    disc = torch.load(os.path.join(models_path, '1_D_Conv' + '_' + 'arma_11_fixed' + '_discriminator.pth'))
 
     parser = argparse.ArgumentParser(description=" Load arguments for script ")
     parser.add_argument('-nd', '--noise_dim', help='Noise dimension',
                         type=int, default=100)
     args = parser.parse_args()
 
-    parameter_heatmap(disc, gen, args,
-                      device='cpu',
-                      model_type='1_D_Conv',
-                      data_type='arma_11_variable',
-                      path=figures_path)
+    # parameter_heatmap(disc, gen, args,
+    #                  device='cpu',
+    #                  model_type='1_D_Conv',
+    #                  data_type='arma_11_variable',
+    #                  path=figures_path)
+
+    residual_diagnostics(disc, gen, args,
+                         device='cpu',
+                         model_type='1_D_Conv',
+                         data_type='arma_11_fixed',
+                         path=figures_path)

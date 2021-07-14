@@ -2,15 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f3fa9ab6-bce0-42a2-b605-d8aa9df2fffd" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Data.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Run.py" beforeDir="false" afterPath="$PROJECT_DIR$/Run.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Testing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Training.py" beforeDir="false" afterPath="$PROJECT_DIR$/Training.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/figures/CausalConv_sin_timeseries_example.png" beforeDir="false" afterPath="$PROJECT_DIR$/figures/CausalConv_sin_timeseries_example.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fitted_models/CausalConv_sin_discriminator.pth" beforeDir="false" afterPath="$PROJECT_DIR$/fitted_models/CausalConv_sin_discriminator.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fitted_models/CausalConv_sin_generator.pth" beforeDir="false" afterPath="$PROJECT_DIR$/fitted_models/CausalConv_sin_generator.pth" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ar.png" beforeDir="false" afterPath="$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ar.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ma.png" beforeDir="false" afterPath="$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ma.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fitted_models/CausalConv_arma_11_fixed_discriminator.pth" beforeDir="false" afterPath="$PROJECT_DIR$/fitted_models/1_D_Conv_arma_11_fixed_discriminator.pth" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fitted_models/CausalConv_arma_11_fixed_generator.pth" beforeDir="false" afterPath="$PROJECT_DIR$/fitted_models/1_D_Conv_arma_11_fixed_generator.pth" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/CausalConvGan.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/CausalConvGan.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,27 +19,24 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/GANs$Data.coverage" NAME="Data Coverage Results" MODIFIED="1625643405342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/GANs$utils.coverage" NAME="utils Coverage Results" MODIFIED="1625646743359" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/GANs$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1625767976226" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/GANs$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1626259637954" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/GANs$Run.coverage" NAME="Run Coverage Results" MODIFIED="1625582388332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/GANs$CausalConvGan.coverage" NAME="CausalConvGan Coverage Results" MODIFIED="1625561548428" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/models" />
+    <SUITE FILE_PATH="coverage/GANs$CausalConvGan.coverage" NAME="CausalConvGan Coverage Results" MODIFIED="1626259942742" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/models" />
   </component>
   <component name="FileEditorManager">
     <leaf>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Testing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="267">
-              <caret line="135" column="48" selection-start-line="135" selection-start-column="48" selection-end-line="135" selection-end-column="48" />
+            <state relative-caret-position="-30">
+              <caret line="229" column="5" selection-start-line="229" selection-start-column="5" selection-end-line="229" selection-end-column="5" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#185#599#0" />
+                <element signature="e#3196#6181#0" />
               </folding>
             </state>
           </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/figures/CausalConv_sin_timeseries_example.png">
-          <provider selected="true" editor-type-id="images" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -59,8 +54,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/CausalConvGan.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1098">
-              <caret line="263" column="59" selection-start-line="263" selection-start-column="59" selection-end-line="263" selection-end-column="59" />
+            <state relative-caret-position="200">
+              <caret line="57" lean-forward="true" selection-start-line="57" selection-end-line="57" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
                 <element signature="e#416#520#0" />
@@ -70,18 +65,6 @@
                 <element signature="e#3358#5387#0" />
                 <element signature="e#5432#8023#0" />
                 <element signature="e#11265#12123#0" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/MLP_GANs.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1448">
-              <caret line="82" column="35" selection-start-line="82" selection-start-column="35" selection-end-line="82" selection-end-column="35" />
-              <folding>
-                <element signature="e#0#20#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -114,8 +97,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="28" column="37" selection-start-line="28" selection-start-column="23" selection-end-line="28" selection-end-column="37" />
+            <state relative-caret-position="1043">
+              <caret line="166" lean-forward="true" selection-start-line="166" selection-end-line="166" />
             </state>
           </provider>
         </entry>
@@ -143,8 +126,8 @@
         <option value="$PROJECT_DIR$/Data.py" />
         <option value="$PROJECT_DIR$/utils.py" />
         <option value="$PROJECT_DIR$/Training.py" />
-        <option value="$PROJECT_DIR$/models/CausalConvGan.py" />
         <option value="$PROJECT_DIR$/Run.py" />
+        <option value="$PROJECT_DIR$/models/CausalConvGan.py" />
         <option value="$PROJECT_DIR$/Testing.py" />
       </list>
     </option>
@@ -169,6 +152,11 @@
               <item name="GANs" type="b2602c69:ProjectViewProjectNode" />
               <item name="GANs" type="462c0819:PsiDirectoryNode" />
               <item name="figures" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="GANs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="GANs" type="462c0819:PsiDirectoryNode" />
+              <item name="fitted_models" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="GANs" type="b2602c69:ProjectViewProjectNode" />
@@ -210,7 +198,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.Testing">
+  <component name="RunManager" selected="Python.CausalConvGan">
     <configuration name="CausalConvGan" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="GANs" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -323,11 +311,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.CausalConvGan" />
         <item itemvalue="Python.Testing" />
         <item itemvalue="Python.utils" />
         <item itemvalue="Python.Data" />
         <item itemvalue="Python.Run" />
-        <item itemvalue="Python.CausalConvGan" />
       </list>
     </recent_temporary>
   </component>
@@ -341,33 +329,34 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1624988426604</updated>
-      <workItem from="1624988427927" duration="41002000" />
+      <workItem from="1624988427927" duration="49198000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="41002000" />
+    <option name="totallyTimeSpent" value="49198000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.36409155" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.38197425" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" />
       <window_info anchor="bottom" id="Version Control" weight="0.32891566" />
       <window_info anchor="bottom" id="Python Console" weight="0.32891566" />
-      <window_info anchor="bottom" id="Terminal" weight="0.32891566" />
+      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.32891566" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32891566" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32891566" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info active="true" anchor="right" id="SciView" visible="true" weight="0.58082974" />
+      <window_info anchor="right" id="SciView" weight="0.58082974" />
       <window_info anchor="right" id="Database" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -483,16 +472,55 @@
     <entry file="file://$PROJECT_DIR$/figures/CausalConv_arma_11_variable_timeseries_example.png">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_distribution.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_timeseries_example.png">
       <provider selected="true" editor-type-id="images" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/Data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1844">
+          <caret line="174" column="44" lean-forward="true" selection-start-line="174" selection-start-column="8" selection-end-line="174" selection-end-column="44" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ma.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/figures/CausalConv_sin_timeseries_example.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ar.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_distribution.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1043">
+          <caret line="166" lean-forward="true" selection-start-line="166" selection-end-line="166" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/MLP_GANs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1426">
+          <caret line="82" column="35" selection-start-line="82" selection-start-column="35" selection-end-line="82" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#20#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/models/CausalConvGan.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1098">
-          <caret line="263" column="59" selection-start-line="263" selection-start-column="59" selection-end-line="263" selection-end-column="59" />
+        <state relative-caret-position="200">
+          <caret line="57" lean-forward="true" selection-start-line="57" selection-end-line="57" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
             <element signature="e#416#520#0" />
@@ -506,48 +534,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/MLP_GANs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1448">
-          <caret line="82" column="35" selection-start-line="82" selection-start-column="35" selection-end-line="82" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#20#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1844">
-          <caret line="174" column="44" lean-forward="true" selection-start-line="174" selection-start-column="8" selection-end-line="174" selection-end-column="44" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Run.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="28" column="37" selection-start-line="28" selection-start-column="23" selection-end-line="28" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/figures/CausalConv_sin_timeseries_example.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ma.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/figures/1_D_Conv_arma_11_variable_parameter_heatmap_ar.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/Testing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="267">
-          <caret line="135" column="48" selection-start-line="135" selection-start-column="48" selection-end-line="135" selection-end-column="48" />
+        <state relative-caret-position="-30">
+          <caret line="229" column="5" selection-start-line="229" selection-start-column="5" selection-end-line="229" selection-end-column="5" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#185#599#0" />
+            <element signature="e#3196#6181#0" />
           </folding>
         </state>
       </provider>

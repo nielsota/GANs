@@ -250,10 +250,9 @@ class ConvGenerator(nn.Module):
         self.emb = nn.Sequential(nn.Linear(in_channels, self.emb_dim),
                                  nn.LeakyReLU(0.2, inplace=True))
 
-        self.gen = nn.Sequential(#nn.Linear(z_dim, 100),
-                                 #nn.LeakyReLU(0.2, inplace=True),
-                                 #AddDimension(),
-                                 spectral_norm(nn.Conv1d(self.emb_dim, self.num_filters, kernel_size, padding=padding),
+        self.add_dim = AddDimension()
+
+        self.gen = nn.Sequential(spectral_norm(nn.Conv1d(self.emb_dim, self.num_filters, kernel_size, padding=padding),
                                                n_power_iterations=10),
                                  nn.Upsample(200),
 
@@ -274,6 +273,10 @@ class ConvGenerator(nn.Module):
 
     def forward(self, x):
         batch_size = len(x)
+
+        # add dimension if shape is [B,T]
+        if len(x.shape) == 2:
+            x = self.add_dim(x)
 
         # Switch T and C dimension, [B, T, C] -> [B*T, C]
         x = x.transpose(1, 2).contiguous().view(-1, x.shape[1])
@@ -298,8 +301,8 @@ class ConvDiscriminator(nn.Module):
                  len_sample: int = 100,
                  in_channels: int = 1):
         super().__init__()
-        self.disc = nn.Sequential(#AddDimension(),
-                                  spectral_norm(nn.Conv1d(in_channels, 48, kernel_size, padding=padding),
+        self.add_dim = AddDimension()
+        self.disc = nn.Sequential(spectral_norm(nn.Conv1d(in_channels, 48, kernel_size, padding=padding),
                                                 n_power_iterations=10),
                                   nn.LeakyReLU(0.2, inplace=True),
                                   nn.MaxPool1d(2),
@@ -321,8 +324,13 @@ class ConvDiscriminator(nn.Module):
                                   nn.Linear(15, 1)
                                   )
 
-    def forward(self, input):
-        return self.disc(input)
+    def forward(self, x):
+
+        # add dimension if shape is [B,T]
+        if len(x.shape) == 2:
+            x = self.add_dim(x)
+
+        return self.disc(x)
 
 
 ################################################################################
