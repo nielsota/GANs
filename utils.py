@@ -20,7 +20,7 @@ def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28)):
     image_tensor_unflat = image_tensor.detach().cpu().view(-1, *size)
     image_grid = make_grid(image_tensor_unflat[:num_images], nrow=5)
     plt.imshow(image_grid.permute(1, 2, 0).squeeze())
-    plt.show()
+    #plt.show()
 
 
 # Show time series plots
@@ -32,7 +32,6 @@ def make_timeseries_plots(time_series_tensor, num_plots: int = 10):
     for i in range(num_plots):
         axs[i].plot(time_series_tensor.detach().view(len(time_series_tensor), -1)[i], color=colors[i % len(colors)])
         axs[i].grid()
-    plt.show()
     return fig
 
 
@@ -59,12 +58,6 @@ def makedirectory(dir_name):
 
 
 def combine_vectors(z, y):
-    """
-
-    :param z: tensor
-    :param y: tensor
-    :return: tensors concatenated along 2nd dimension
-    """
     return torch.cat((z.float(),y.float()), 1)
 
 

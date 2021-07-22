@@ -8,12 +8,15 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 warnings.simplefilter('ignore', UserWarning)
+warnings.simplefilter('ignore', FutureWarning)
 
 
 def plot_timeseries(disc, gen, args, save_name, path,
                     conditional=False, device='cpu'):
+    # Generate fake noise
     fake_noise = get_noise(args.batch_size, args.noise_dim, device=device)
 
+    # Add labels to array if conditional GAN
     if conditional:
         params = np.arange(-0.95, 0.95, 0.1)
         labels = []
@@ -25,57 +28,71 @@ def plot_timeseries(disc, gen, args, save_name, path,
         labels = torch.tensor(labels)
         fake_noise = combine_noise_and_labels(fake_noise, labels)
 
+    # Generate samples
     fake = gen(fake_noise)
+
+    # Plot samples
     fig = make_timeseries_plots(fake)
+
+    # Save samples
     fig.savefig(os.path.join(path, save_name))
 
 
 def parameter_distribution(disc, gen, args, model_type, data_type,
                            path, conditional=False, device='cpu'):
-    save_name = model_type + '_' + data_type + '_parameter_distribution'
     print("Started generating parameter distribution")
+    save_name = model_type + '_' + data_type + '_parameter_distribution'
 
-    AR_TARGET = 0.65
-    MA_TARGET = 0.25
-    TESTING_SERIES = 2500
+    # Set to target values
+    ar_target = 0.5
+    ma_target = 0.5
 
-    fake_noise = get_noise(TESTING_SERIES, args.noise_dim, device=device)
+    # Number of testing series
+    testing_series = 500
 
+    # Generate fake noise
+    fake_noise = get_noise(testing_series, args.noise_dim, device=device)
+
+    # Append labels as channel to noise if this is variable arma
     if conditional:
-        labels = torch.ones([TESTING_SERIES, 2])
-        labels[:, 0] = labels[:, 0] * AR_TARGET
-        labels[:, 1] = labels[:, 1] * MA_TARGET
+        labels = torch.ones([testing_series, 2])
+        labels[:, 0] = labels[:, 0] * ar_target
+        labels[:, 1] = labels[:, 1] * ma_target
         fake_noise = combine_noise_and_labels(fake_noise, labels)
 
+    # Generate fake examples
     fake = gen(fake_noise)
     fake = fake.cpu().detach().numpy()
-    AR = []
-    MA = []
+
+    # Estimate and store ar and ma parameters
+    ar = []
+    ma = []
     for i in range(len(fake)):
         mod = ARIMA(fake[i, :], order=(1, 0, 1))
         res = mod.fit(return_params=True)
-        AR.append(res[1])
-        MA.append(res[2])
+        ar.append(res[1])
+        ma.append(res[2])
 
+    # Plot estimates in graph
+    f, axis = plt.subplots()
     print(" Finished generating paramter distribution")
-    print('mean AR parameter estimates: {}'.format(np.mean(np.array(AR))))
-    print('mean MA parameter estimates: {}'.format(np.mean(np.array(MA))))
-    print('std AR parameter estimates: {}'.format(np.std(np.array(AR))))
-    print('std MA parameter estimates: {}'.format(np.std(np.array(MA))))
+    print('mean AR parameter estimates: {}'.format(np.mean(np.array(ar))))
+    print('mean MA parameter estimates: {}'.format(np.mean(np.array(ma))))
+    print('std AR parameter estimates: {}'.format(np.std(np.array(ar))))
+    print('std MA parameter estimates: {}'.format(np.std(np.array(ma))))
     sns.set(rc={'figure.figsize': (11.7, 8.27)})
     sns.axes_style("whitegrid")
-
     # Draw the density plot
-    sns.distplot(AR, hist=True, kde=True,
+    sns.distplot(ar, hist=True, kde=True,
                  kde_kws={'linewidth': 1, 'shade': True},
-                 label='AR')
+                 label='AR', ax=axis)
     # Draw the density plot
-    sns.distplot(MA, hist=True, kde=True,
+    sns.distplot(ma, hist=True, kde=True,
                  kde_kws={'linewidth': 1, 'shade': True},
-                 label='MA')
+                 label='MA', ax=axis)
 
-    plt.axvline(AR_TARGET, 0, 10, linestyle='-')
-    plt.axvline(MA_TARGET, 0, 10, linestyle='-')
+    plt.axvline(ar_target, 0, 10, linestyle='-')
+    plt.axvline(ma_target, 0, 10, linestyle='-')
     # plt.axvline(np.mean(AR), 0, max(AR), linestyle = '-')
     # plt.axvline(np.mean(MA), 0, max(MA))
     # Plot formatting
@@ -83,8 +100,9 @@ def parameter_distribution(disc, gen, args, model_type, data_type,
     plt.title('Density Plot AR and MA parameters')
     plt.xlabel('Value')
     plt.ylabel('Density')
+    f.set_size_inches(11.7, 8.27)
     print(os.path.join(path, save_name))
-    plt.savefig(os.path.join(path, save_name))
+    f.savefig(os.path.join(path, save_name))
     plt.show()
 
 
@@ -174,28 +192,39 @@ def parameter_heatmap(disc, gen, args, model_type, data_type, path,
 
 
 def residual_diagnostics(disc, gen, args, model_type, data_type, path,
-                         device='cpu'):
+                         conditional=False, device='cpu'):
+    # Save name and checkpoint
     save_name = model_type + '_' + data_type + '_parameter_distribution'
-    print("Started generating parameter distribution")
+    print("Started generating residual diagnostics")
 
-    AR_TARGET = 0.5
-    MA_TARGET = 0.5
-    TESTING_SERIES = 1000
+    # Set to target values
+    ar_target = 0.5
+    ma_target = 0.5
 
-    fake_noise = get_noise(TESTING_SERIES, args.noise_dim, device=device)
+    # Number of testing series
+    testing_series = 2500
 
-    labels = torch.ones([TESTING_SERIES, 2])
-    labels[:, 0] = labels[:, 0] * AR_TARGET
-    labels[:, 1] = labels[:, 1] * MA_TARGET
-    fake_noise = combine_noise_and_labels(fake_noise, labels)
+    # Generate fake noise
+    fake_noise = get_noise(testing_series, args.noise_dim, device=device)
 
+    # Append labels as channel to noise if this is variable arma
+    if conditional:
+        labels = torch.ones([testing_series, 2])
+        labels[:, 0] = labels[:, 0] * ar_target
+        labels[:, 1] = labels[:, 1] * ma_target
+        fake_noise = combine_noise_and_labels(fake_noise, labels)
+
+    # Generate fake examples
     fake = gen(fake_noise)
     fake = fake.cpu().detach().numpy()
+
+    # Create arrays to store test statistic p-values
     jb = []
     lb_1 = []
     lb_2 = []
     het = []
 
+    # Estimate model and compute residual diagnostics for generated series
     for i in range(len(fake)):
         mod = ARIMA(fake[i, :], order=(1, 0, 1))
         res = mod.fit()
@@ -216,10 +245,12 @@ def residual_diagnostics(disc, gen, args, model_type, data_type, path,
         # Heteroskedasticity test p-value
         het.append(het_temp[0, 1])
 
-        # print(res.summary())
-        # print(jb)
-        # print(lb_1)
-        # print(het)
+    print("--------------------------------\n")
+    print("% H rejected: " + str(sum([i < 0.05 / 3 for i in het]) / testing_series))
+    print("% N rejected: " + str(sum([i < 0.05 / 3 for i in jb]) / testing_series))
+    print("% S1 rejected: " + str(sum([i < 0.05 / 3 for i in lb_1]) / testing_series))
+    print("% S2 rejected: " + str(sum([i < 0.05 for i in lb_2]) / testing_series))
+    print("\n--------------------------------\n")
 
 
 ################################################################################
@@ -249,5 +280,5 @@ if __name__ == '__main__':
     residual_diagnostics(disc, gen, args,
                          device='cpu',
                          model_type='1_D_Conv',
-                         data_type='arma_11_fixed',
+                         data_type='arma_11_variable',
                          path=figures_path)

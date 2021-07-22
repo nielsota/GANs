@@ -134,29 +134,51 @@ if __name__ == '__main__':
         run(models_path, args)
 
     if testbool:
+
         print("models loading...")
         # save name example models/sin_generator
         gen = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type + '_generator.pth'))
         disc = torch.load(os.path.join(models_path, args.model_type + '_' + args.data_type + '_discriminator.pth'))
         print("generating samples...")
-        plot_timeseries(disc, gen, args, save_name=args.model_type + '_' + args.data_type + '_timeseries_example',
-                        path=figures_path, device='cpu', conditional=True)
-        print("finished plotting samples...")
+
+
         if args.data_type == 'arma_11_fixed':
+            print("starting plotting samples...")
+            #plot_timeseries(disc,
+            #                gen,
+            #                args,
+            #                save_name=args.model_type + '_' + args.data_type + '_timeseries_example',
+            #                path=figures_path,
+            #                device='cpu',
+            #                conditional=False)
+
+            print("finished plotting samples...")
+
             parameter_distribution(disc, gen, args,
                                    device='cpu',
                                    model_type=args.model_type,
                                    data_type=args.data_type,
                                    conditional=False,
                                    path=figures_path)
+
         if args.data_type == 'arma_11_variable':
+            plot_timeseries(disc,
+                            gen,
+                            args,
+                            save_name=args.model_type + '_' + args.data_type + '_timeseries_example',
+                            path=figures_path,
+                            device='cpu',
+                            conditional=True)
+
             #parameter_distribution(disc, gen, args,
              ##                      device='cpu',
               #                     model_type=args.model_type,
               #                     data_type=args.data_type,
               #                     conditional=True,
               #                     path=figures_path)
-            parameter_heatmap(disc, gen, args,
+            parameter_heatmap(disc,
+                              gen,
+                              args,
                               device='cpu',
                               model_type=args.model_type,
                               data_type=args.data_type,
