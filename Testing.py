@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
+from statsmodels.stats.stattools import durbin_watson
+from statsmodels.stats.diagnostic import acorr_breusch_godfrey
 
 warnings.simplefilter('ignore', ConvergenceWarning)
 warnings.simplefilter('ignore', UserWarning)
@@ -221,35 +223,42 @@ def residual_diagnostics(disc, gen, args, model_type, data_type, path,
     # Create arrays to store test statistic p-values
     jb = []
     lb_1 = []
-    lb_2 = []
+    #lb_2 = []
     het = []
 
     # Estimate model and compute residual diagnostics for generated series
     for i in range(len(fake)):
         mod = ARIMA(fake[i, :], order=(1, 0, 1))
         res = mod.fit()
+        #print(durbin_watson(res.resid))
+        #print(acorr_breusch_godfrey(res))
 
-        lb_temp = np.squeeze((res.test_serial_correlation('ljungbox')))
+
+        #lb_temp = np.squeeze((res.test_serial_correlation('ljungbox', lags=1)))
+        lb_temp = np.squeeze(acorr_breusch_godfrey(res))
         jb_temp = np.squeeze(res.test_normality('jarquebera'))
         het_temp = res.test_heteroskedasticity('breakvar')
+
+        #print(acorr_ljungbox(res.resid, lags=[i+1 for i in range(10)], return_df=True))
 
         # Jarque-Bera P-value
         jb.append(jb_temp[1])
 
         # LB lag 1 p-value
-        lb_1.append(lb_temp[1, 0])
+        #lb_1.append(lb_temp[1])
+        lb_1.append(lb_temp[1])
 
         # LB lag 2 p-value
-        lb_2.append(lb_temp[1, 1])
+        #lb_2.append(lb_temp[1, 1])
 
         # Heteroskedasticity test p-value
         het.append(het_temp[0, 1])
 
     print("--------------------------------\n")
-    print("% H rejected: " + str(sum([i < 0.05 / 3 for i in het]) / testing_series))
-    print("% N rejected: " + str(sum([i < 0.05 / 3 for i in jb]) / testing_series))
-    print("% S1 rejected: " + str(sum([i < 0.05 / 3 for i in lb_1]) / testing_series))
-    print("% S2 rejected: " + str(sum([i < 0.05 for i in lb_2]) / testing_series))
+    print("% H rejected: " + str(sum([i < 0.05 * 3 for i in het]) / testing_series))
+    print("% N rejected: " + str(sum([i < 0.05 * 3 for i in jb]) / testing_series))
+    print("% S1 rejected: " + str(sum([i < 0.05 * 3 for i in lb_1]) / testing_series))
+    #print("% S2 rejected: " + str(sum([i < 0.05 for i in lb_2]) / testing_series))
     print("\n--------------------------------\n")
 
 
@@ -280,5 +289,6 @@ if __name__ == '__main__':
     residual_diagnostics(disc, gen, args,
                          device='cpu',
                          model_type='1_D_Conv',
-                         data_type='arma_11_variable',
-                         path=figures_path)
+                         data_type='arma_11_fixed',
+                         path=figures_path,
+                         conditional=False)

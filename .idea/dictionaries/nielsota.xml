@@ -2,6 +2,8 @@
   <dictionary name="nielsota">
     <words>
       <w>broadcasted</w>
+      <w>dataloader</w>
+      <w>hyperparameters</w>
     </words>
   </dictionary>
 </component>
