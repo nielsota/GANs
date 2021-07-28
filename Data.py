@@ -16,13 +16,7 @@ from typing import Sequence
 
 # Get random noise
 def get_noise(n_samples, z_dim, device='cpu'):
-    """
 
-    :param n_samples: number of samples to generate
-    :param z_dim:  dimension of each noise sample
-    :param device: device to save tensor on
-    :return: noise in batch [batch_size, features] = [n_dim, z_dim]
-    """
     return torch.randn(n_samples, z_dim, device=device)
 
 ################################################################################

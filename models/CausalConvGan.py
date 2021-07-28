@@ -355,6 +355,7 @@ if __name__ == '__main__':
     print("input shape: {}".format(test_input.shape))
     try:
         test_discriminator = ConvDiscriminator()
+        print(test_discriminator)
         test_output = test_discriminator(test_input)
         print("output shape: {}".format(test_output.shape))
         print("Convolution discriminator functional!\n")

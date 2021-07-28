@@ -25,3 +25,22 @@ class SqeezeDimension(nn.Module):
         def hook(model, input, output):
             features[name] = output.detach()
         return hook
+
+
+# Code for zipping together lists of unequal length
+def _one_pass(iters):
+    for it in iters:
+        try:
+            yield next(it)
+        except StopIteration:
+            pass #of some of them are already exhausted then ignore it.
+
+
+def zip_varlen(*iterables):
+    iters = [iter(it) for it in iterables]
+    while True: #broken when an empty tuple is given by _one_pass
+        val = tuple(_one_pass(iters))
+        if val:
+            yield val
+        else:
+            break

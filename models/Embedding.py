@@ -90,6 +90,28 @@ class ClassificationTrainer:
         # Plot loss
         self.plot_loss = plot_loss
 
+    def _trainiteration(self, data, labels):
+        # Retrieve data and labels
+        data = data.to(self.device).float()
+        labels = labels.to(self.device).float()
+
+        # Create predictions
+        pred = self.model(data)
+
+        # Compute loss
+        loss = self.criterion(pred, labels)
+
+        # Zero out old gradients
+        self.opt.zero_grad()
+
+        # Compute gradients using back prop
+        loss.backward()
+
+        # Take a step
+        self.opt.step()
+
+        return loss.item()
+
     def _trainloop(self):
         """
         Function for training loop
@@ -100,27 +122,11 @@ class ClassificationTrainer:
 
         for data, labels in tqdm(self.dataloader):
 
-            # Retrieve data and labels
-            data = data.to(self.device).float()
-            labels = labels.to(self.device).float()
-
-            # Create predictions
-            pred = self.model(data)
-
-            # Compute loss
-            loss = self.criterion(pred, labels)
-
-            # Zero out old gradients
-            self.opt.zero_grad()
-
-            # Compute gradients using back prop
-            loss.backward()
-
-            # Take a step
-            self.opt.step()
+            # Take step
+            loss_item = self._trainiteration(data, labels)
 
             # Store loss
-            epoch_losses += [loss.item()]
+            epoch_losses += [loss_item]
 
         # Keep track of the average generator loss
         self.losses += [np.mean(epoch_losses)]

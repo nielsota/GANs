@@ -2,8 +2,13 @@
   <dictionary name="nielsota">
     <words>
       <w>broadcasted</w>
+      <w>conv</w>
+      <w>convs</w>
       <w>dataloader</w>
       <w>hyperparameters</w>
+      <w>maxpool</w>
+      <w>relu</w>
+      <w>relus</w>
     </words>
   </dictionary>
 </component>
