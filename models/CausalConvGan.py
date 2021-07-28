@@ -1,8 +1,13 @@
+# DEPRECATED VERSION: See Conv_GAN for updated model
+
 import torch
 from torch import nn
 import torch.nn.functional as F
 from Data import get_noise
 from torch.nn.utils import spectral_norm
+
+
+# DEPRECATED VERSION: See Conv_GAN for updated model
 
 
 ################################################################################
