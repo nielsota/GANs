@@ -284,10 +284,12 @@ class OneShotTrainer:
         generator_path = os.path.join(path, model_type + '_' + data_type + '_generator.pth')
         disc_path = os.path.join(path, model_type + '_' + data_type + '_critic.pth')
 
+        import dill
+
         # Save models
-        torch.save(self.embedder, emb_path)
-        torch.save(self.generator, generator_path)
-        torch.save(self.critic, disc_path)
+        torch.save(self.embedder, emb_path, pickle_module=dill)
+        torch.save(self.generator, generator_path, pickle_module=dill)
+        torch.save(self.critic, disc_path, pickle_module=dill)
 
         print("--------------- models saved --------------- \n")
 
@@ -311,7 +313,7 @@ def main():
     # Create loss function
     emb_crit = nn.MSELoss()
 
-    trainer = OneShotTrainer(gen, crit, embedder, dataloader, gen_opt, crit_opt, emb_opt, emb_crit)
+    trainer = OneShotTrainer(gen, crit, embedder, dataloader, gen_opt, crit_opt, emb_opt, emb_crit, emb_epochs=1)
 
     data, labels = next(iter(dataloader))
 
@@ -319,6 +321,9 @@ def main():
     trainer._crit_trainiteration(data, labels)
 
     trainer.fit()
+
+    path = os.path.join(os.path.dirname(os.getcwd()), 'fitted_models')
+    trainer.save_model(path, 'oneshotGAN', 'arma_11_variable')
 
 
 if __name__ == '__main__':
