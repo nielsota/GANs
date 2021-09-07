@@ -4,7 +4,9 @@
       <w>broadcasted</w>
       <w>conv</w>
       <w>convs</w>
+      <w>crit</w>
       <w>dataloader</w>
+      <w>embedder</w>
       <w>hyperparameters</w>
       <w>maxpool</w>
       <w>relu</w>

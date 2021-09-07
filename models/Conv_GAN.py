@@ -109,12 +109,12 @@ class ConvCritic(nn.Module):
 
         # Specify number of filter
         if num_filters is None:
-            self.num_filters = [1, 50, 50]
+            self.num_filters = [3, 50, 50]
         else:
             self.num_filters = num_filters
 
         # Specify number of neurons
-        if num_filters is None:
+        if num_neurons is None:
 
             # Calculate number of neurons after flatten
             n_linear_1 = int(self.num_filters[-1] * (100 / ((len(self.num_filters) - 1) * 2)))
@@ -122,8 +122,8 @@ class ConvCritic(nn.Module):
             # Set number of neurons linear layers
             self.num_neurons = [n_linear_1, 50, 15, 1]
         else:
-            assert num_filters[0] == int(self.num_filters[-1] * (100 / ((len(self.num_filters) - 1) * 2)))
-            self.num_filters = num_filters
+            assert num_neurons[0] == int(self.num_filters[-1] * (100 / ((len(self.num_filters) - 1) * 2)))
+            self.num_neurons = num_neurons
 
         # Specify kernel size and padding
         self.kernel_size = kernel_size
@@ -377,6 +377,18 @@ class CwganTrainer:
                 plt.grid()
                 plt.show()
 
+    def save_model(self, path, model_type, data_type):
+
+        # Generate paths
+        generator_path = os.path.join(path, model_type + '_' + data_type + '_generator.pth')
+        disc_path = os.path.join(path, model_type + '_' + data_type + '_critic.pth')
+
+        # Save models
+        torch.save(self.generator, generator_path)
+        torch.save(self.critic, disc_path)
+
+        print("--------------- models saved --------------- \n")
+
 
 if __name__ == '__main__':
     # Unit tests Generator
@@ -400,19 +412,28 @@ if __name__ == '__main__':
     print('Output shape: {}'.format(pred.shape))
 
     # Unit test Trainer
-    dl = load_sin_data(batch_size=128, num_samples=10000,
+    dl = load_sin_data(batch_size=256, num_samples=25600,
                        len_sample=100)
-
     g = ConvGenerator(in_channels=1)
     c = ConvCritic(in_channels=1)
     print(c)
 
     # Create optimizer
-    a = torch.optim.Adam(g.parameters(), lr=0.0001, betas=(0.5, 0.999))
-    b = torch.optim.Adam(c.parameters(), lr=0.0001, betas=(0.5, 0.999))
+    a = torch.optim.Adam(g.parameters(), lr=0.00008, betas=(0.5, 0.999))
+    b = torch.optim.Adam(c.parameters(), lr=0.00008, betas=(0.5, 0.999))
 
     # Option needed for debugging
     torch.autograd.set_detect_anomaly(True)
-
-    trainer = CwganTrainer(g, c, a, b, dl)
+    trainer = CwganTrainer(g, c, a, b, dl, epochs=100)
     trainer.fit()
+
+    # Create save path
+    models_path = '/Users/nielsota/Documents/GitHub/GANs/fitted_models'
+    model_type = '1_D_Conv_v2'
+    data_type = 'arma_11_variable'
+
+    # Save model
+    trainer.save_model(models_path, model_type, data_type)
+
+
+

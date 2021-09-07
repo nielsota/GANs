@@ -266,8 +266,8 @@ def residual_diagnostics(disc, gen, args, model_type, data_type, path,
 ############################## MAIN FUNCTION  ##################################
 ################################################################################
 
-
 if __name__ == '__main__':
+
     print("models loading...")
     # save name example models/sin_generator
     models_path = os.path.join(str(os.getcwd()), 'fitted_models')

@@ -12,7 +12,8 @@ class Embedder(nn.Module):
                  len_sample: int = 100,
                  emb_dim: int = 16,
                  kernel_size: int = 5,
-                 padding: int = 2):
+                 padding: int = 2,
+                 chn=None):
         super().__init__()
 
         # Dimensions for network
@@ -23,6 +24,12 @@ class Embedder(nn.Module):
         self.kernel_size = kernel_size
         self.padding = padding
 
+        # Set channels
+        if chn is None:
+            self.chn = [1, 32, 32, 32, 1]
+        else:
+            self.chn = chn
+
         # Build model
         self.network = self.build_network()
         self.final = nn.Sequential(nn.Linear(self.emb_dim, 2),
@@ -31,7 +38,7 @@ class Embedder(nn.Module):
     def build_network(self):
 
         # Define number of channels each layer
-        chn = [1, 32, 32, 32, 1]
+        chn = self.chn
 
         # Create list holding 1D-conv objects
         convs = [nn.Conv1d(chn[i], chn[i + 1], kernel_size=self.kernel_size,
@@ -141,10 +148,20 @@ class ClassificationTrainer:
             self._trainloop()
             print("\n--------------- Finished epoch {} --------------- \n".format(str(i + 1)))
 
-            if self.plot_loss and i + 1 % 25 == 0:
+            if self.plot_loss and (i + 1) % 50 == 0:
                 plt.plot(self.losses)
                 plt.grid()
                 plt.show()
+
+    def save_model(self, path, model_type, data_type):
+
+        # Generate paths
+        model_path = os.path.join(path, model_type + '_' + data_type + '_classifier.pth')
+
+        # Save models
+        torch.save(self.model, model_path)
+
+        print("--------------- models saved --------------- \n")
 
 
 if __name__ == '__main__':
@@ -153,20 +170,29 @@ if __name__ == '__main__':
     model = Embedder()
 
     # Create dataloader
-    dataloader = load_arima_data(batch_size=512, num_samples=10000,
+    dataloader = load_arima_data(batch_size=512, num_samples=512,
                                  len_sample=100, dgp='arma_11_variable')
 
     # Create optimizer
-    opt = torch.optim.Adam(model.parameters(), lr=0.0001, betas=(0.5, 0.999))
+    opt = torch.optim.Adam(model.parameters(), lr=0.00005, betas=(0.5, 0.999))
 
     # Create loss function
     crit = nn.MSELoss()
 
     # Create trainer
-    trainer = ClassificationTrainer(model, opt, dataloader, crit)
+    trainer = ClassificationTrainer(model, opt, dataloader, crit, epochs=1)
 
     # Fit model
     trainer.fit()
+
+    # Create save path
+    #models_path = '/Users/nielsota/Documents/GitHub/GANs/fitted_models'
+    #model_type = '1_D_Conv_v2'
+    #data_type = 'arma_11_variable'
+
+    # Save model
+    #trainer.save_model(models_path, model_type, data_type)
+
 
     # Helper function for building hook
     def get_features(name):
@@ -197,3 +223,23 @@ if __name__ == '__main__':
     print('Time series batch has shape {}'.format(test_input.shape))
     print('Embedded features have shape {}'.format(embeddings[0].shape))
 
+    def _forward_hook(layer_name):
+        def hook(module, input, output):
+            selected_out[layer_name] = output
+        return hook
+
+
+    from collections import OrderedDict
+    selected_out = OrderedDict()
+    print(model._modules.keys())
+    print(getattr(model, 'network'))
+    fhooks = []
+    fhooks.append(model.network.register_forward_hook(_forward_hook('network')))
+    # forward pass [with feature extraction]
+    test_input = get_noise(32, 100)
+    preds = model(test_input)
+    test_input2 = get_noise(32, 100)
+    preds2 = model(test_input2)
+    print(model.network)
+    print(fhooks)
+    print(selected_out['network'].shape)
