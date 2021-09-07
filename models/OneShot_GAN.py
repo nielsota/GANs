@@ -292,7 +292,7 @@ class OneShotTrainer:
         print("--------------- models saved --------------- \n")
 
 
-if __name__ == '__main__':
+def main():
 
     # Create model
     gen = ConvGenerator(in_channels=17)
@@ -320,3 +320,6 @@ if __name__ == '__main__':
 
     trainer.fit()
 
+
+if __name__ == '__main__':
+    main()
